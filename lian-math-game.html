@@ -1,0 +1,544 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<title>Lian's Math Game 🌟</title>
+<link href="https://fonts.googleapis.com/css2?family=Baloo+2:wght@800&display=swap" rel="stylesheet">
+<style>
+* { box-sizing:border-box; margin:0; padding:0; -webkit-tap-highlight-color:transparent; user-select:none; }
+:root { --pink:#FF6BAE; --purple:#B36AFF; --yellow:#FFD340; --mint:#00D48A; --sky:#4DCFFF; --coral:#FF7F50; }
+
+body { font-family:'Baloo 2',cursive; background:#FFF5FC; min-height:100vh; overflow:hidden; touch-action:manipulation; }
+
+.screen { display:none; position:fixed; inset:0; flex-direction:column; align-items:center; justify-content:center; padding:16px 14px; }
+.screen.active { display:flex; }
+
+/* ===== WELCOME ===== */
+#screenWelcome { background:linear-gradient(160deg,#FFE4F5 0%,#EDE4FF 100%); }
+.big-name { font-size:clamp(3.5rem,16vw,6rem); font-weight:800; background:linear-gradient(135deg,var(--pink),var(--purple)); -webkit-background-clip:text; -webkit-text-fill-color:transparent; line-height:1; margin-bottom:4px; animation:bounceIn .5s ease; }
+.welcome-star { font-size:clamp(3.5rem,14vw,5.5rem); margin-bottom:16px; animation:wobble 2s ease-in-out infinite; }
+.family-strip { display:flex; gap:10px; margin-bottom:28px; flex-wrap:wrap; justify-content:center; }
+.fam-pill { display:flex; flex-direction:column; align-items:center; background:white; border-radius:22px; padding:10px 16px; box-shadow:0 4px 16px rgba(180,100,255,.18); animation:popIn .4s ease both; border:3px solid; min-width:74px; }
+.fam-pill:nth-child(1){ border-color:var(--sky);    animation-delay:.1s }
+.fam-pill:nth-child(2){ border-color:var(--purple); animation-delay:.2s }
+.fam-pill:nth-child(3){ border-color:var(--pink);   animation-delay:.3s }
+.fam-pill:nth-child(4){ border-color:var(--mint);   animation-delay:.4s }
+.fam-emo { font-size:2.8rem; }
+.fam-lbl { font-size:.82rem; font-weight:800; color:#7B3FB0; margin-top:2px; }
+.tap-start { font-size:clamp(2.4rem,10vw,3.5rem); background:linear-gradient(135deg,var(--pink),var(--purple)); border:none; border-radius:60px; color:white; font-family:'Baloo 2',cursive; font-weight:800; padding:18px 56px; cursor:pointer; box-shadow:0 8px 28px rgba(255,107,174,.45); animation:pulse 1.8s ease-in-out infinite; }
+
+/* ===== MODE SELECT ===== */
+#screenModes { background:linear-gradient(160deg,#FFF0E4 0%,#E4F5FF 100%); }
+.mode-grid { display:grid; grid-template-columns:1fr 1fr; gap:16px; width:100%; max-width:420px; }
+.mode-btn { background:white; border-radius:28px; border:4px solid; padding:22px 8px 16px; cursor:pointer; transition:transform .1s; box-shadow:0 6px 20px rgba(0,0,0,.09); display:flex; flex-direction:column; align-items:center; font-family:'Baloo 2',cursive; gap:8px; }
+.mode-btn:active { transform:scale(.90); }
+.mode-btn:nth-child(1){ border-color:var(--mint); }
+.mode-btn:nth-child(2){ border-color:var(--sky); }
+.mode-btn:nth-child(3){ border-color:var(--yellow); }
+.mode-btn:nth-child(4){ border-color:var(--coral); }
+.mode-icon { font-size:clamp(3rem,13vw,4.5rem); }
+.mode-tag  { font-size:clamp(1.1rem,5vw,1.6rem); }
+.home-fab { position:fixed; top:14px; left:14px; z-index:99; background:white; border:3px solid var(--purple); border-radius:50%; width:52px; height:52px; font-size:1.5rem; cursor:pointer; display:flex; align-items:center; justify-content:center; box-shadow:0 3px 12px rgba(180,100,255,.25); }
+
+/* ===== GAME ===== */
+#screenGame { background:linear-gradient(160deg,#FFF5FC 0%,#F0EEFF 100%); justify-content:flex-start; padding-top:10px; }
+.top-bar { display:flex; justify-content:space-between; align-items:center; width:100%; max-width:460px; margin-bottom:8px; padding:0 2px; }
+.hearts-bar  { font-size:1.9rem; letter-spacing:3px; }
+.score-stars { font-size:1.5rem; letter-spacing:2px; background:white; border-radius:40px; padding:4px 12px; box-shadow:0 2px 8px rgba(180,100,255,.2); }
+.progress-dots { display:flex; gap:6px; flex-wrap:wrap; justify-content:center; margin-bottom:8px; }
+.dot { width:13px; height:13px; border-radius:50%; background:rgba(180,100,255,.2); transition:background .3s,transform .3s; }
+.dot.done    { background:var(--mint);   transform:scale(1.2); }
+.dot.current { background:var(--yellow); transform:scale(1.35); animation:pulse 1s infinite; }
+
+.speaker-row { display:flex; align-items:flex-end; gap:10px; width:100%; max-width:460px; margin-bottom:8px; }
+.speaker-face { font-size:clamp(3.2rem,13vw,4.8rem); flex-shrink:0; cursor:pointer; transition:transform .15s; }
+.speaker-face.talking { animation:talkBounce .35s ease-in-out infinite alternate; }
+@keyframes talkBounce { from{transform:scale(1) rotate(-4deg)} to{transform:scale(1.12) rotate(4deg)} }
+
+.speech-bubble { background:white; border-radius:20px 20px 20px 4px; padding:10px 14px; flex:1; box-shadow:0 3px 12px rgba(180,100,255,.18); border:2.5px solid rgba(180,100,255,.25); font-size:clamp(1.6rem,7vw,2.2rem); font-weight:800; color:#6800BF; display:flex; align-items:center; gap:8px; flex-wrap:wrap; min-height:54px; }
+
+.sound-bars { display:inline-flex; gap:3px; align-items:flex-end; height:26px; margin-left:4px; flex-shrink:0; }
+.sound-bars span { width:5px; background:var(--pink); border-radius:3px; animation:barAnim .5s ease-in-out infinite; }
+.sound-bars span:nth-child(1){ height:10px; animation-delay:0s }
+.sound-bars span:nth-child(2){ height:22px; animation-delay:.1s }
+.sound-bars span:nth-child(3){ height:15px; animation-delay:.2s }
+.sound-bars span:nth-child(4){ height:24px; animation-delay:.05s }
+.sound-bars span:nth-child(5){ height:11px; animation-delay:.15s }
+@keyframes barAnim { 0%,100%{transform:scaleY(.35)} 50%{transform:scaleY(1)} }
+
+.objects-area { display:flex; flex-wrap:wrap; justify-content:center; align-items:center; gap:6px; width:100%; max-width:460px; background:rgba(255,211,64,.12); border-radius:22px; border:3px dashed rgba(255,200,0,.4); padding:12px 8px; margin-bottom:10px; min-height:68px; }
+.obj-item { font-size:clamp(2rem,8.5vw,3.2rem); animation:popIn .22s ease both; line-height:1; transition:transform .1s; }
+.obj-item:active { transform:scale(1.35); }
+
+.answers-area { display:grid; grid-template-columns:1fr 1fr; gap:12px; width:100%; max-width:460px; }
+.ans-btn { background:white; border-radius:24px; border:4px solid var(--purple); font-size:clamp(2.2rem,10vw,3.2rem); font-weight:800; font-family:'Baloo 2',cursive; color:#5A00C0; padding:16px 8px; cursor:pointer; box-shadow:0 5px 16px rgba(180,100,255,.2); transition:transform .08s; display:flex; align-items:center; justify-content:center; flex-wrap:wrap; line-height:1.25; }
+.ans-btn:active  { transform:scale(.90); }
+.ans-btn.correct { background:var(--mint);  border-color:var(--mint);  color:white; animation:correctPop .38s ease; }
+.ans-btn.wrong   { background:#FF5555; border-color:#FF5555; color:white; animation:shake .35s ease; }
+
+#feedbackOverlay { position:fixed; inset:0; display:flex; align-items:center; justify-content:center; z-index:200; pointer-events:none; opacity:0; transition:opacity .2s; }
+#feedbackOverlay.show { opacity:1; }
+.fb-content { font-size:clamp(4.5rem,20vw,8rem); animation:feedbackPop .45s ease; }
+
+/* ===== CELEBRATION ===== */
+#screenCelebration { background:linear-gradient(160deg,#FFF9CC 0%,#FFD6F0 100%); }
+.celeb-face  { font-size:clamp(5rem,22vw,9rem); animation:wobble 1s ease-in-out infinite; }
+.celeb-stars { font-size:clamp(2.8rem,12vw,4.5rem); letter-spacing:10px; margin:14px 0; animation:popIn .5s ease .2s both; }
+.celeb-btns  { display:flex; gap:14px; flex-wrap:wrap; justify-content:center; margin-top:18px; }
+.btn-big { background:linear-gradient(135deg,var(--pink),var(--purple)); color:white; border:none; border-radius:50px; padding:16px 40px; font-size:clamp(1.5rem,7vw,2rem); font-family:'Baloo 2',cursive; font-weight:800; cursor:pointer; box-shadow:0 6px 22px rgba(255,107,174,.4); transition:transform .1s; }
+.btn-big:active { transform:scale(.93); }
+.btn-sm  { background:white; color:var(--purple); border:4px solid var(--purple); border-radius:50px; padding:12px 28px; font-size:clamp(1.2rem,5.5vw,1.6rem); font-family:'Baloo 2',cursive; font-weight:800; cursor:pointer; box-shadow:0 4px 14px rgba(180,100,255,.2); transition:transform .1s; }
+.btn-sm:active  { transform:scale(.93); }
+
+.cp { position:fixed; border-radius:3px; animation:cf linear forwards; pointer-events:none; z-index:300; }
+@keyframes cf          { 0%{transform:translateY(-30px) rotate(0deg);opacity:1} 100%{transform:translateY(110vh) rotate(720deg);opacity:0} }
+@keyframes bounceIn    { 0%{transform:scale(.5) translateY(-20px);opacity:0} 70%{transform:scale(1.1)} 100%{transform:scale(1);opacity:1} }
+@keyframes popIn       { 0%{transform:scale(0);opacity:0} 80%{transform:scale(1.15)} 100%{transform:scale(1);opacity:1} }
+@keyframes wobble      { 0%,100%{transform:rotate(-12deg) scale(1)} 50%{transform:rotate(12deg) scale(1.1)} }
+@keyframes pulse       { 0%,100%{transform:scale(1)} 50%{transform:scale(1.07)} }
+@keyframes feedbackPop { 0%{transform:scale(0) rotate(-20deg)} 60%{transform:scale(1.35) rotate(5deg)} 100%{transform:scale(1) rotate(0)} }
+@keyframes correctPop  { 0%{transform:scale(1)} 50%{transform:scale(1.2)} 100%{transform:scale(1)} }
+@keyframes shake       { 0%,100%{transform:translateX(0)} 30%{transform:translateX(-10px)} 70%{transform:translateX(10px)} }
+</style>
+</head>
+<body>
+
+<div id="feedbackOverlay"><div class="fb-content" id="fbContent"></div></div>
+
+<!-- WELCOME -->
+<div class="screen active" id="screenWelcome">
+  <div class="welcome-star">🌟</div>
+  <div class="big-name">Lian!</div>
+  <div class="family-strip">
+    <div class="fam-pill"><span class="fam-emo">👨</span><span class="fam-lbl">Boaz</span></div>
+    <div class="fam-pill"><span class="fam-emo">👩</span><span class="fam-lbl">Sivan</span></div>
+    <div class="fam-pill"><span class="fam-emo">👧</span><span class="fam-lbl">Lian</span></div>
+    <div class="fam-pill"><span class="fam-emo">👶</span><span class="fam-lbl">Naomi</span></div>
+  </div>
+  <button class="tap-start" onclick="goModes()">▶</button>
+</div>
+
+<!-- MODE SELECT -->
+<div class="screen" id="screenModes">
+  <button class="home-fab" onclick="goWelcome()">🏠</button>
+  <div class="mode-grid">
+    <button class="mode-btn" onclick="startGame('count')">
+      <span class="mode-icon">🍎</span><span class="mode-tag">1️⃣2️⃣3️⃣</span>
+    </button>
+    <button class="mode-btn" onclick="startGame('add')">
+      <span class="mode-icon">➕</span><span class="mode-tag">🔢🔢</span>
+    </button>
+    <button class="mode-btn" onclick="startGame('bigger')">
+      <span class="mode-icon">⬆️</span><span class="mode-tag" style="font-size:clamp(1.3rem,6vw,1.8rem);font-weight:800;color:#5A00C0;letter-spacing:4px;">3 &nbsp; 7</span>
+    </button>
+    <button class="mode-btn" onclick="startGame('match')">
+      <span class="mode-icon">🔗</span><span class="mode-tag">🔢↔️🍎</span>
+    </button>
+  </div>
+</div>
+
+<!-- GAME -->
+<div class="screen" id="screenGame">
+  <button class="home-fab" onclick="showScreen('screenModes')">🏠</button>
+  <div class="top-bar">
+    <div class="hearts-bar"  id="heartsBar">❤️❤️❤️</div>
+    <div class="score-stars" id="scoreStars">☆</div>
+  </div>
+  <div class="progress-dots" id="progressDots"></div>
+  <div class="speaker-row">
+    <div class="speaker-face" id="speakerFace" onclick="replayVoice()">👧</div>
+    <div class="speech-bubble" id="speechBubble">🌟</div>
+  </div>
+  <div class="objects-area"  id="objectsArea"></div>
+  <div class="answers-area"  id="answersArea"></div>
+</div>
+
+<!-- CELEBRATION -->
+<div class="screen" id="screenCelebration">
+  <div class="celeb-face"  id="celebFace">🏆</div>
+  <div class="celeb-stars" id="celebStars">⭐⭐⭐</div>
+  <div class="celeb-btns">
+    <button class="btn-big" onclick="goWelcome()">🏠</button>
+  </div>
+</div>
+
+<script>
+// ============================================================
+//  VOICE ENGINE — ElevenLabs "Charlotte"
+//  Warm, natural, child-friendly female voice.
+//  API key embedded — no setup needed for Lian.
+// ============================================================
+const EL_KEY     = 'sk_4b62d8255ad4e8e65300dc28e5c9a237ce5fef775e088199';
+const EL_VOICE   = 'XB0fDUnXU5powFXDhCwa'; // Charlotte — warm friendly female
+const EL_MODEL   = 'eleven_turbo_v2_5';     // fast + high quality
+
+let lastText   = '';
+let audioCache = {};   // text → blob URL  (avoids re-fetching same phrase)
+let currentAudio = null;
+
+// Phonetic spellings so the voice says names correctly
+function phonetic(text) {
+  return text
+    .replace(/\bLian\b/g,  'Liian')
+    .replace(/\bBoaz\b/g,  'Boaaz')
+    .replace(/\bSivan\b/g, 'Sivaan')
+    .replace(/\bNaomi\b/g, 'Noemi');
+}
+
+async function speak(text) {
+  if (!text) return;
+  lastText = text;
+  const phrase = phonetic(text);
+
+  // Stop anything playing
+  if (currentAudio) { try { currentAudio.pause(); currentAudio.currentTime = 0; } catch(e){} }
+
+  showSoundBars(true);
+  setSpeakerTalking(true);
+
+  // Serve from cache if available
+  if (audioCache[phrase]) {
+    playBlob(audioCache[phrase]);
+    return;
+  }
+
+  try {
+    const res = await fetch(`https://api.elevenlabs.io/v1/text-to-speech/${EL_VOICE}`, {
+      method: 'POST',
+      headers: {
+        'xi-api-key': EL_KEY,
+        'Content-Type': 'application/json',
+        'Accept': 'audio/mpeg'
+      },
+      body: JSON.stringify({
+        text: phrase,
+        model_id: EL_MODEL,
+        voice_settings: {
+          stability: 0.50,
+          similarity_boost: 0.85,
+          style: 0.35,
+          use_speaker_boost: true
+        }
+      })
+    });
+
+    if (!res.ok) throw new Error(`ElevenLabs ${res.status}`);
+
+    const blob = await res.blob();
+    const url  = URL.createObjectURL(blob);
+    audioCache[phrase] = url;
+    playBlob(url);
+
+  } catch(err) {
+    console.warn('ElevenLabs error, using device voice:', err);
+    showSoundBars(false);
+    setSpeakerTalking(false);
+    fallbackSpeak(text);
+  }
+}
+
+function playBlob(url) {
+  const audio = new Audio(url);
+  currentAudio = audio;
+  audio.onended  = () => { showSoundBars(false); setSpeakerTalking(false); };
+  audio.onerror  = () => { showSoundBars(false); setSpeakerTalking(false); };
+  audio.play().catch(e => { showSoundBars(false); setSpeakerTalking(false); });
+}
+
+function replayVoice() { if (lastText) speak(lastText); }
+
+function setSpeakerTalking(on) {
+  const f = document.getElementById('speakerFace');
+  if (f) f.classList.toggle('talking', on);
+}
+
+// Device voice fallback (if offline or API fails)
+const synth = window.speechSynthesis;
+function fallbackSpeak(text) {
+  synth.cancel();
+  const u = new SpeechSynthesisUtterance(phonetic(text));
+  u.rate = 0.72; u.pitch = 1.15; u.lang = 'en-US';
+  u.onstart = () => { showSoundBars(true);  setSpeakerTalking(true);  };
+  u.onend   = () => { showSoundBars(false); setSpeakerTalking(false); };
+  synth.speak(u);
+}
+
+function showSoundBars(show) {
+  const b = document.getElementById('speechBubble');
+  if (!b) return;
+  let bars = b.querySelector('.sound-bars');
+  if (show && !bars) {
+    bars = document.createElement('div');
+    bars.className = 'sound-bars';
+    bars.innerHTML = '<span></span><span></span><span></span><span></span><span></span>';
+    b.appendChild(bars);
+  } else if (!show && bars) {
+    bars.remove();
+  }
+}
+
+// ============================================================
+//  FAMILY DATA
+// ============================================================
+const FAMILY = [
+  { name:'Lian',  emoji:'👧', items:['🎀','🌸','🦋','⭐','🍭','🌈','💖','🎠','🐱','🎨'] },
+  { name:'Boaz',  emoji:'👨', items:['⚽','🚗','🔧','🍕','🎸','🏀','✈️','🐟','⛺','🎯'] },
+  { name:'Sivan', emoji:'👩', items:['🌺','☕','📚','🌿','🕯️','🌷','🍰','🧁','🐝','🦚'] },
+  { name:'Naomi', emoji:'👶', items:['🐣','🧸','🎈','🌟','🍬','🐥','🦄','🎶','🐰','🌼'] }
+];
+
+// ============================================================
+//  GAME STATE
+// ============================================================
+let gMode='count', gScore=0, gLives=3, gQ=0, gTotal=10, gAnswered=false, gCorrect=0;
+
+const rand    = (a,b) => Math.floor(Math.random()*(b-a+1))+a;
+const shuffle = a     => [...a].sort(()=>Math.random()-.5);
+const pickFam = ()    => FAMILY[rand(0,FAMILY.length-1)];
+
+// ============================================================
+//  SCREENS
+// ============================================================
+function showScreen(id) {
+  document.querySelectorAll('.screen').forEach(s=>s.classList.remove('active'));
+  document.getElementById(id).classList.add('active');
+}
+function goWelcome() { showScreen('screenWelcome'); speak('Hi Lian! Tap the arrow to play!'); }
+function goModes()   { showScreen('screenModes');   speak('Which game do you want to play? Tap one!'); }
+
+// ============================================================
+//  GAME FLOW
+// ============================================================
+function startGame(mode) {
+  gMode=mode; gScore=0; gLives=3; gQ=0; gAnswered=false;
+  buildDots(); updateTop();
+  showScreen('screenGame');
+  nextQ();
+}
+function restartGame() { startGame(gMode); }
+
+function buildDots() {
+  const c=document.getElementById('progressDots'); c.innerHTML='';
+  for(let i=0;i<gTotal;i++){
+    const d=document.createElement('div');
+    d.className='dot'+(i===0?' current':''); d.id='dot'+i; c.appendChild(d);
+  }
+}
+function updateTop() {
+  document.getElementById('heartsBar').textContent  = '❤️'.repeat(Math.max(0,gLives)) || '🖤';
+  document.getElementById('scoreStars').textContent = gScore>0 ? '⭐'.repeat(gScore) : '☆';
+}
+function updateDots() {
+  for(let i=0;i<gTotal;i++){
+    const d=document.getElementById('dot'+i); if(!d) continue;
+    d.className='dot';
+    if(i<gQ)        d.classList.add('done');
+    else if(i===gQ) d.classList.add('current');
+  }
+}
+
+function nextQ() {
+  if(gQ>=gTotal){ endGame(); return; }
+  gAnswered=false;
+  document.querySelectorAll('.ans-btn').forEach(b=>{b.classList.remove('correct','wrong');b.disabled=false;});
+  updateDots();
+  const modes = { count:genCount, add:genAdd, bigger:genBigger, match:genMatch };
+  modes[gMode]();
+}
+
+const setSpeaker = fam  => document.getElementById('speakerFace').textContent = fam.emoji;
+const setBubble  = html => document.getElementById('speechBubble').innerHTML  = html;
+
+function showObjs(items) {
+  const a=document.getElementById('objectsArea'); a.innerHTML='';
+  items.forEach((item,i)=>{
+    const s=document.createElement('span');
+    s.className='obj-item'; s.textContent=item; s.style.animationDelay=(i*.07)+'s';
+    if(item==='➕'){ s.style.fontSize='2rem'; s.style.margin='0 6px'; }
+    a.appendChild(s);
+  });
+}
+
+// ============================================================
+//  QUESTION GENERATORS
+// ============================================================
+function genCount() {
+  const fam=pickFam(), n=rand(1,7), item=fam.items[rand(0,fam.items.length-1)];
+  setSpeaker(fam);
+  setBubble(item.repeat(n)+'&nbsp;<b style="font-size:1.1em">?</b>');
+  showObjs(Array(n).fill(item));
+  speak(`${fam.name} says: how many can you count? Tap the right number!`);
+  gCorrect=n;
+  setAnsNumbers(n,1,9);
+}
+
+function genAdd() {
+  const f1=pickFam(); let f2=pickFam(); while(f2===f1) f2=pickFam();
+  const a=rand(1,4), b=rand(1,4), sum=a+b;
+  const i1=f1.items[rand(0,f1.items.length-1)], i2=f2.items[rand(0,f2.items.length-1)];
+  setSpeaker(f1);
+  setBubble(i1.repeat(a)+'&nbsp;➕&nbsp;'+i2.repeat(b)+'&nbsp;<b>?</b>');
+  showObjs([...Array(a).fill(i1),'➕',...Array(b).fill(i2)]);
+  speak(`${f1.name} has ${a} and ${f2.name} has ${b}. Count them all! How many altogether?`);
+  gCorrect=sum;
+  setAnsNumbers(sum,1,9);
+}
+
+function genBigger() {
+  const fam=pickFam(), a=rand(1,9); let b=rand(1,9); while(b===a) b=rand(1,9);
+  const bigger=Math.max(a,b);
+  setSpeaker(fam);
+  setBubble('⬆️ <b>?</b>');
+  document.getElementById('objectsArea').innerHTML='';
+  speak(`${fam.name} says: which number is bigger? Tap the bigger one!`);
+  gCorrect=bigger;
+  const area=document.getElementById('answersArea');
+  area.innerHTML=''; area.style.gridTemplateColumns='1fr 1fr';
+  [a,b].forEach(val=>{
+    const btn=document.createElement('button');
+    btn.className='ans-btn'; btn.style.fontSize='clamp(3.5rem,15vw,5.5rem)';
+    btn.textContent=val; btn.onclick=()=>handleAns(val,bigger,btn);
+    area.appendChild(btn);
+  });
+}
+
+function genMatch() {
+  const fam=pickFam(), n=rand(1,6), item=fam.items[rand(0,fam.items.length-1)];
+  setSpeaker(fam);
+  setBubble(`<span style="font-size:2.4em;color:#5A00C0;font-weight:800">${n}</span>`);
+  document.getElementById('objectsArea').innerHTML='';
+  speak(`${fam.name} says: find the group with ${n}! Tap the right one!`);
+  gCorrect=n;
+  const wrongs=new Set();
+  while(wrongs.size<3){ const w=rand(1,7); if(w!==n) wrongs.add(w); }
+  const opts=shuffle([n,...wrongs]);
+  const area=document.getElementById('answersArea');
+  area.innerHTML=''; area.style.gridTemplateColumns='1fr 1fr';
+  opts.forEach(val=>{
+    const btn=document.createElement('button');
+    btn.className='ans-btn'; btn.style.fontSize=val<=3?'2.2rem':'1.5rem'; btn.style.lineHeight='1.35';
+    btn.textContent=item.repeat(val); btn.onclick=()=>handleAns(val,n,btn);
+    area.appendChild(btn);
+  });
+}
+
+function setAnsNumbers(correct,min,max) {
+  const area=document.getElementById('answersArea');
+  area.innerHTML=''; area.style.gridTemplateColumns='1fr 1fr';
+  const opts=new Set([correct]);
+  while(opts.size<4){ const w=rand(min,max); opts.add(w); }
+  shuffle([...opts]).forEach(val=>{
+    const btn=document.createElement('button');
+    btn.className='ans-btn'; btn.textContent=val;
+    btn.onclick=()=>handleAns(val,correct,btn);
+    area.appendChild(btn);
+  });
+}
+
+// ============================================================
+//  ANSWER HANDLING
+// ============================================================
+const CHEERS       = ['Amazing!','Yay! You got it!','Super duper!','Wow, great job Lian!','Yes! Brilliant!','Fantastic!','You are so smart Lian!','Woohoo!'];
+const OOPS         = ['Try again, you can do it!','Oops! Have another go!','Not quite, try again Lian!','Keep going, you are doing great!'];
+const CHEERS_EMOJI = ['🎉','⭐','🌟','🥳','👏','💫','🏆','🎊','✨','🌈'];
+const OOPS_EMOJI   = ['💪','🙈','😅'];
+
+function handleAns(chosen, correct, btn) {
+  if(gAnswered) return;
+  gAnswered=true;
+  document.querySelectorAll('.ans-btn').forEach(b=>b.disabled=true);
+
+  if(chosen===correct) {
+    btn.classList.add('correct');
+    gScore=Math.min(gScore+1,10); gQ++;
+    updateTop();
+    showFeedback(CHEERS_EMOJI[rand(0,CHEERS_EMOJI.length-1)]);
+    playTone(true);
+    speak(CHEERS[rand(0,CHEERS.length-1)]);
+    setTimeout(()=>nextQ(), 1500);
+  } else {
+    btn.classList.add('wrong');
+    gLives--; updateTop();
+    showFeedback(OOPS_EMOJI[rand(0,OOPS_EMOJI.length-1)]);
+    playTone(false);
+    speak(OOPS[rand(0,OOPS.length-1)]);
+    if(gLives<=0) {
+      setTimeout(()=>endGame(), 900);
+    } else {
+      setTimeout(()=>{
+        btn.classList.remove('wrong');
+        document.querySelectorAll('.ans-btn').forEach(b=>b.disabled=false);
+        gAnswered=false;
+        replayVoice();
+      }, 1300);
+    }
+  }
+}
+
+function showFeedback(emoji) {
+  const o=document.getElementById('feedbackOverlay');
+  document.getElementById('fbContent').textContent=emoji;
+  o.classList.add('show');
+  setTimeout(()=>o.classList.remove('show'),900);
+}
+
+// ============================================================
+//  END GAME
+// ============================================================
+function endGame() {
+  const pct=gScore/gTotal;
+  document.getElementById('celebFace').textContent  = pct>=.8?'🏆':pct>=.5?'🌟':'💖';
+  document.getElementById('celebStars').textContent = pct>=.8?'⭐⭐⭐':pct>=.5?'⭐⭐':'⭐';
+  launchConfetti();
+  speak('Yay Lian! You are a superstar! Amazing job! Well done!');
+  showScreen('screenCelebration');
+}
+
+function launchConfetti() {
+  const clrs=['#FF6BAE','#B36AFF','#FFD340','#00D48A','#4DCFFF','#FF7F50'];
+  for(let i=0;i<70;i++){
+    setTimeout(()=>{
+      const c=document.createElement('div'); c.className='cp';
+      c.style.left=Math.random()*100+'vw';
+      c.style.background=clrs[rand(0,clrs.length-1)];
+      c.style.width=(7+Math.random()*8)+'px'; c.style.height=(7+Math.random()*8)+'px';
+      c.style.borderRadius=Math.random()>.5?'50%':'3px';
+      c.style.animationDuration=(1.8+Math.random()*2)+'s';
+      c.style.animationDelay=Math.random()*.6+'s';
+      document.body.appendChild(c); setTimeout(()=>c.remove(),5000);
+    },i*25);
+  }
+}
+
+// ============================================================
+//  TONES
+// ============================================================
+let actx=null;
+function playTone(ok) {
+  try {
+    if(!actx) actx=new(window.AudioContext||window.webkitAudioContext)();
+    const notes=ok?[523,659,784]:[300,240];
+    notes.forEach((f,i)=>{
+      const o=actx.createOscillator(), g=actx.createGain();
+      o.connect(g); g.connect(actx.destination);
+      o.frequency.value=f; o.type=ok?'sine':'sawtooth';
+      const t=actx.currentTime+i*.12;
+      g.gain.setValueAtTime(.22,t); g.gain.exponentialRampToValueAtTime(.001,t+.18);
+      o.start(t); o.stop(t+.18);
+    });
+  } catch(e){}
+}
+
+// ============================================================
+//  INIT
+// ============================================================
+window.onload = () => {
+  // Warm greeting — ElevenLabs will speak as soon as user taps play
+  // (browsers require a user gesture before playing audio)
+};
+</script>
+</body>
+</html>
