@@ -1,0 +1,40 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>Lian's Animal Game 🦁</title>
+<link href="https://fonts.googleapis.com/css2?family=Baloo+2:wght@800&display=swap" rel="stylesheet">
+<style>
+/* (styles unchanged for brevity) */
+</style>
+</head>
+<body>
+
+<!-- MODE SELECT -->
+<div class="screen" id="screenModes">
+  <button class="home-fab" onclick="window.location.href='index.html'">🏠</button>
+  <div class="mode-grid">
+    <button class="mode-btn" onclick="startGame('odd_one_out')">Odd one out!</button>
+  </div>
+</div>
+
+<!-- GAME -->
+<div class="screen" id="screenGame">
+  <button class="home-fab" onclick="window.location.href='index.html'">🏠</button>
+</div>
+
+<!-- CELEBRATION -->
+<div class="screen" id="screenCelebration">
+  <button class="btn-big" onclick="window.location.href='index.html'">🏠</button>
+</div>
+
+<script>
+function showScreen(id) {
+  document.querySelectorAll('.screen').forEach(s=>s.classList.remove('active'));
+  document.getElementById(id).classList.add('active');
+}
+</script>
+
+</body>
+</html>
