@@ -1,0 +1,60 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<title>Lian's Animal Game 🦁</title>
+<link href="https://fonts.googleapis.com/css2?family=Baloo+2:wght@800&display=swap" rel="stylesheet">
+<style>
+* { box-sizing:border-box; margin:0; padding:0; -webkit-tap-highlight-color:transparent; user-select:none; }
+:root { --pink:#FF6BAE; --purple:#B36AFF; --yellow:#FFD340; --mint:#00D48A; --sky:#4DCFFF; --coral:#FF7F50; --green:#5CDB6F; --orange:#FF9A3C; }
+body { font-family:'Baloo 2',cursive; background:#F0FFF4; min-height:100vh; overflow:hidden; touch-action:manipulation; }
+.screen { display:none; position:fixed; inset:0; flex-direction:column; align-items:center; justify-content:center; padding:16px 14px; }
+.screen.active { display:flex; }
+</style>
+</head>
+<body>
+
+<!-- WELCOME -->
+<div class="screen active" id="screenWelcome">
+  <button class="tap-start" onclick="goModes()">▶</button>
+</div>
+
+<!-- MODE SELECT -->
+<div class="screen" id="screenModes">
+  <button class="home-fab" onclick="window.location.href='index.html'">🏠</button>
+  <div class="mode-grid">
+    <button class="mode-btn" onclick="startGame('odd_one_out')">Odd one out!</button>
+    <button class="mode-btn" onclick="startGame('which_group')">Which group?</button>
+    <button class="mode-btn" onclick="startGame('how_many')">How many?</button>
+    <button class="mode-btn" onclick="startGame('where_live')">Where do I live?</button>
+    <button class="mode-btn" onclick="startGame('big_small')">Bigger or smaller?</button>
+  </div>
+</div>
+
+<!-- GAME -->
+<div class="screen" id="screenGame">
+  <button class="home-fab" onclick="window.location.href='index.html'">🏠</button>
+  <div id="questionArea"></div>
+  <div id="answersArea"></div>
+</div>
+
+<!-- CELEBRATION -->
+<div class="screen" id="screenCelebration">
+  <button class="btn-big" onclick="window.location.href='index.html'">🏠</button>
+</div>
+
+<script>
+function showScreen(id) {
+  document.querySelectorAll('.screen').forEach(s=>s.classList.remove('active'));
+  document.getElementById(id).classList.add('active');
+}
+function goWelcome(){ showScreen('screenWelcome'); }
+function goModes(){ showScreen('screenModes'); }
+function startGame(){ showScreen('screenGame'); }
+</script>
+
+</body>
+</html>
